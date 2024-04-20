@@ -2,9 +2,10 @@
 
 #pragma once
 
+#include <Components/BoxComponent.h>
+
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include <Components/BoxComponent.h>
 #include "CPPRandomStageSpawner.generated.h"
 
 UCLASS()
@@ -16,19 +17,19 @@ public:
 	// Sets default values for this actor's properties
 	ACPPRandomStageSpawner();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	TObjectPtr<USceneComponent> SceneRoot;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	TObjectPtr<UStaticMeshComponent> StageWall;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Component")
 	TObjectPtr<UBoxComponent> Area;
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AActor> Floor;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "StageFloor")
+	TSubclassOf<class ACPPStageFloor> Floor;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "StageFloor")
 	uint8 NumberOfFloor = 10;
 
 protected:

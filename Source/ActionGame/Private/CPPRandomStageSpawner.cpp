@@ -2,6 +2,7 @@
 
 
 #include "CPPRandomStageSpawner.h"
+#include "CPPStageFloor.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
@@ -34,7 +35,7 @@ void ACPPRandomStageSpawner::SpawnFloor()
 			FRotator::ZeroRotator,
 			FVector(1.f, 1.f, 1.f)
 		);
-		GetWorld()->SpawnActor<AActor>(Floor, SpawnTransform, FActorSpawnParameters());
+		GetWorld()->SpawnActor<ACPPStageFloor>(Floor, SpawnTransform, FActorSpawnParameters());
 	}
 }
 
