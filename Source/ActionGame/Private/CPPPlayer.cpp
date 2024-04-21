@@ -23,7 +23,7 @@ ACPPPlayer::ACPPPlayer()
 	bUseControllerRotationYaw = false;	// キャラクターの向きをコントローラーの向きに追従させない
 	GetCharacterMovement()->bOrientRotationToMovement = true;	// キャラクターの正面を移動方向に向ける
 	GetCharacterMovement()->AirControl = 0.75f;
-	GetCharacterMovement()->JumpZVelocity = 200.0f;
+	GetCharacterMovement()->JumpZVelocity = 500.0f;
 	GetCharacterMovement()->GravityScale = 0.5f;
 	GetCharacterMovement()->MaxStepHeight = 5.0f;
 	GetCharacterMovement()->MaxWalkSpeed = 100.0f;

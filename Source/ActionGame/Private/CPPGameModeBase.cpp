@@ -53,8 +53,8 @@ void ACPPGameModeBase::SpawnNextTrigger(AActor* OverlappedActor, AActor* OtherAc
 	SpawnParam.Template = TriggerVolume;
 	TObjectPtr<ATriggerVolume> NewTriggerVolume = 
 		GetWorld()->SpawnActor<ATriggerVolume>(
-			TargetPoint->GetActorLocation(), 
-			TargetPoint->GetActorRotation(), 
+			TargetPoint->GetActorLocation() - TriggerVolume->GetActorLocation(), // テンプレートの分を除く
+			TargetPoint->GetActorRotation() - TriggerVolume->GetActorRotation(),
 			SpawnParam
 		);
 	// 次のトリガーでも同様の処理が走るようにする
@@ -70,8 +70,8 @@ void ACPPGameModeBase::SpawnNextTrigger(AActor* OverlappedActor, AActor* OtherAc
 
 	// 次のスポーン地点を生成する
 	GetWorld()->SpawnActor<ATargetPoint>(
-		TargetPoint->GetActorLocation()*2 - TriggerVolume->GetActorLocation(),
-		TargetPoint->GetActorRotation()*2 - TriggerVolume->GetActorRotation(),
+		TargetPoint->GetActorLocation() + (TargetPoint->GetActorLocation() - TriggerVolume->GetActorLocation()),
+		TargetPoint->GetActorRotation(),
 		FActorSpawnParameters()
 	);
 
