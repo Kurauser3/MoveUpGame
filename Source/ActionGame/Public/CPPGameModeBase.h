@@ -17,4 +17,13 @@ class ACTIONGAME_API ACPPGameModeBase : public AGameModeBase
 public:
 	ACPPGameModeBase();
 	
+protected:
+	virtual void BeginPlay() override;
+
+	/**
+	 * 次のステージを生成するためのTriggerVolumeとTargetPointを生成する。
+	 * 発火元のTriggerVolumeは破棄する。
+	 */
+	UFUNCTION()
+	void SpawnNextTrigger(AActor* OverlappedActor, AActor* OtherActor);
 };
