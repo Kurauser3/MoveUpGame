@@ -16,6 +16,9 @@ class ACTIONGAME_API ACPPGameModeBase : public AGameModeBase
 
 public:
 	ACPPGameModeBase();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Component")
+	TSubclassOf< class ACPPRandomStageSpawner > Stage;
 	
 protected:
 	virtual void BeginPlay() override;

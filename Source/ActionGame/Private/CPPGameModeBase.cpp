@@ -6,7 +6,7 @@
 #include <Engine/TriggerVolume.h>
 #include <Engine/TargetPoint.h>
 
-
+#include "CPPRandomStageSpawner.h"
 #include "CPPGameModeBase.h"
 #include "CPPPlayer.h"
 
@@ -37,6 +37,8 @@ void ACPPGameModeBase::BeginPlay()
 
 void ACPPGameModeBase::SpawnNextTrigger(AActor* OverlappedActor, AActor* OtherActor)
 {
+	if (!Stage) return; // 生成するステージが設定されていなければ無視
+
 	if (!Cast<ACharacter>(OtherActor)) return; // オーバーラップしたのがキャラクターでなければ無視
 
 	TObjectPtr<ATriggerVolume> TriggerVolume = Cast<ATriggerVolume>(OverlappedActor);
@@ -57,6 +59,14 @@ void ACPPGameModeBase::SpawnNextTrigger(AActor* OverlappedActor, AActor* OtherAc
 		);
 	// 次のトリガーでも同様の処理が走るようにする
 	NewTriggerVolume->OnActorBeginOverlap.AddDynamic(this, &ACPPGameModeBase::SpawnNextTrigger);
+
+	// ステージ生成
+	GetWorld()->SpawnActor<ACPPRandomStageSpawner>(
+		Stage,
+		TargetPoint->GetActorLocation(),
+		TargetPoint->GetActorRotation(),
+		FActorSpawnParameters()
+	);
 
 	// 次のスポーン地点を生成する
 	GetWorld()->SpawnActor<ATargetPoint>(
