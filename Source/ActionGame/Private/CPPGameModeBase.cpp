@@ -4,6 +4,8 @@
 #include "CPPRandomStageSpawner.h"
 #include "CPPPlayer.h"
 
+#include "Blueprint/WidgetBlueprintLibrary.h"
+
 #include <Kismet/KismetSystemLibrary.h>
 #include <Kismet/GameplayStatics.h>
 #include <Engine/TriggerVolume.h>
@@ -21,7 +23,15 @@ ACPPGameModeBase::ACPPGameModeBase()
 
 void ACPPGameModeBase::BeginPlay()
 {
-	
+	// 他のUIから遷移してきた場合はマウス操作をゲームに戻す必要があるのでここで設定
+	TObjectPtr<APlayerController> Controller = UGameplayStatics::GetPlayerController(this, 0);
+	if (Controller)
+	{
+		UWidgetBlueprintLibrary::SetInputMode_GameOnly(Controller);
+		Controller->SetShowMouseCursor(false);
+	}
+
+	// 最初のステージスポナーを設定する
 	TArray<TObjectPtr<AActor>> ActorsToFind;
 	UGameplayStatics::GetAllActorsOfClass(this, ATriggerVolume::StaticClass(), ActorsToFind);
 
@@ -33,6 +43,7 @@ void ACPPGameModeBase::BeginPlay()
 			TriggerVolumeCast->OnActorBeginOverlap.AddDynamic(this, &ACPPGameModeBase::SpawnNextTrigger);
 		}
 	}
+
 }
 
 void ACPPGameModeBase::SpawnNextTrigger(AActor* OverlappedActor, AActor* OtherActor)
