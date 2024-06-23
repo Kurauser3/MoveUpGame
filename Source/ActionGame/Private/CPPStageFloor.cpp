@@ -12,6 +12,7 @@ ACPPStageFloor::ACPPStageFloor()
 	Floor = CreateDefaultSubobject<UStaticMeshComponent>(FName("Floor"));
 	Floor->SetupAttachment(RootComponent);
 
+	
 }
 
 // Called when the game starts or when spawned

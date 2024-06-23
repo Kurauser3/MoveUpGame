@@ -4,6 +4,7 @@
 #include "CPPRandomStageSpawner.h"
 #include "CPPStageFloor.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Math/RandomStream.h"
 
 // Entry Point ===================================================================================
@@ -178,7 +179,17 @@ void ACPPRandomStageSpawner::SpawnFloor(FVector Location, FVector Max, FVector M
 		Min + Location,
 		FRotator::ZeroRotator
 	);
-	World->SpawnActor<ACPPStageFloor>(Actor, SpawnTransform, FActorSpawnParameters());
+
+	ACPPStageFloor* NewFloor = World->SpawnActorDeferred<ACPPStageFloor>(Actor, SpawnTransform);
+	// フロアのサイズを含めてエリア内に収まるように補正
+	FVector Extent = GetFloorBounds(NewFloor);
+	FVector NewLocation = SpawnTransform.GetLocation();
+	if (Extent.X + NewLocation.X > Max.X) NewLocation.X -= Extent.X;
+	if (Extent.Y + NewLocation.Y > Max.Y) NewLocation.Y -= Extent.Y;
+	if (NewLocation.X - Extent.X < Min.X) NewLocation.X += Extent.X;
+	if (NewLocation.Y - Extent.Y < Min.Y) NewLocation.Y += Extent.Y;
+	SpawnTransform.SetLocation(NewLocation);
+	NewFloor->FinishSpawning(SpawnTransform);
 }
 
 bool ACPPRandomStageSpawner::ValidateLocation(FVector Location, FVector Max, FVector Min)
@@ -192,4 +203,15 @@ bool ACPPRandomStageSpawner::ValidateLocation(FVector Location, FVector Max, FVe
 		Location.Z <= Max.Z &&
 		Location.Z >= Min.Z
 		);
+}
+
+FVector ACPPRandomStageSpawner::GetFloorBounds(ACPPStageFloor* Actor)
+{
+	if (!Actor) return FVector::ZeroVector;
+
+	FVector Origin;
+	FVector Extent;
+	Actor->GetActorBounds(true, Origin, Extent);
+
+	return Extent;
 }

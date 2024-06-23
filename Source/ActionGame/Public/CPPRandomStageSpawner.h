@@ -109,5 +109,7 @@ protected:
 	UFUNCTION()
 	static double GetMinY(double Distance, double X, double Z, FVector Prev = FVector::ZeroVector);
 
+	UFUNCTION()
+	static FVector GetFloorBounds(ACPPStageFloor* Actor);
 };
 
