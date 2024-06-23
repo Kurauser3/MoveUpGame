@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Components/Button.h"
-#include "Kismet/GameplayStatics.h"
 
 #include "CPPMainMenuWidget.h"
+#include "Components/Button.h"
+#include "Kismet/GameplayStatics.h"
 
 void UCPPMainMenuWidget::NativeConstruct()
 {

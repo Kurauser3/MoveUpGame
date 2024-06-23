@@ -20,9 +20,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Component")
 	TObjectPtr<UStaticMeshComponent> Floor;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Component")
-	TObjectPtr<UBoxComponent> NextStepArea;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
