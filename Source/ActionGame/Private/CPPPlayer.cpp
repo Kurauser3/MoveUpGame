@@ -23,8 +23,7 @@ ACPPPlayer::ACPPPlayer()
 	bUseControllerRotationYaw = false;	// キャラクターの向きをコントローラーの向きに追従させない
 	GetCharacterMovement()->bOrientRotationToMovement = true;	// キャラクターの正面を移動方向に向ける
 	GetCharacterMovement()->AirControl = 0.75f;
-	GetCharacterMovement()->JumpZVelocity = 500.0f;
-	GetCharacterMovement()->GravityScale = 0.5f;
+	GetCharacterMovement()->GravityScale = 0.4f;
 	GetCharacterMovement()->MaxStepHeight = 5.0f;
 	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
 	GetCharacterMovement()->MaxAcceleration = 400.0f;	// 歩き、走りの加速
@@ -91,15 +90,31 @@ void ACPPPlayer::MoveCamera(const FInputActionValue& Value)
 
 	AddControllerYawInput(Input.X);
 	AddControllerPitchInput(Input.Y);
-	
-}
 
+}
 
 void ACPPPlayer::TestJump()
 {
+	if (!bJumpChargeStarted) return;
+	GetCharacterMovement()->JumpZVelocity = JumpVelocity;
 	Jump();
+	JumpVelocity = MinJumpVelocity;
 	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f, %f, %f"), TestCameraVectorF.X, TestCameraVectorF.Y, TestCameraVectorF.Z));
 	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f, %f, %f"), TestCameraVectorR.X, TestCameraVectorR.Y, TestCameraVectorR.Z));
+}
+
+void ACPPPlayer::JumpCharge(const FInputActionInstance& Value)
+{
+	if (!CanJump()) bJumpChargeStarted = false;
+	if (!bJumpChargeStarted) return;
+	JumpVelocity += Value.GetElapsedTime() * (MaxJumpVelocity-JumpVelocity)*0.003f;
+	if (JumpVelocity > MaxJumpVelocity)	JumpVelocity = MaxJumpVelocity;
+	GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, FString::Printf(TEXT("Charge: %f"), JumpVelocity));
+}
+
+void ACPPPlayer::JumpChargeStarted()
+{
+	bJumpChargeStarted = true;
 }
 
 void ACPPPlayer::Tick(float DeltaTime)
@@ -116,7 +131,9 @@ void ACPPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		// 各アクションをバインド
 		// EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACPPPlayer::TestJump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpChargeAction, ETriggerEvent::Started, this, &ACPPPlayer::JumpChargeStarted);
+		EnhancedInputComponent->BindAction(JumpChargeAction, ETriggerEvent::Ongoing, this, &ACPPPlayer::JumpCharge);
+		// EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ACPPPlayer::Move);
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ACPPPlayer::Sprint);
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ACPPPlayer::Walk);

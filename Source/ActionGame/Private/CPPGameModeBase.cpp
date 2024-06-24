@@ -4,9 +4,9 @@
 #include "CPPRandomStageSpawner.h"
 #include "CPPPlayer.h"
 
-#include "Blueprint/WidgetBlueprintLibrary.h"
-
+#include <Blueprint/WidgetBlueprintLibrary.h>
 #include <Kismet/KismetSystemLibrary.h>
+#include <Kismet/KismetMathLibrary.h>
 #include <Kismet/GameplayStatics.h>
 #include <Engine/TriggerVolume.h>
 #include <Engine/TargetPoint.h>
@@ -30,6 +30,10 @@ void ACPPGameModeBase::BeginPlay()
 		UWidgetBlueprintLibrary::SetInputMode_GameOnly(Controller);
 		Controller->SetShowMouseCursor(false);
 	}
+	
+	TObjectPtr<AActor> ActorToFind = UGameplayStatics::GetActorOfClass(this, ACPPRandomStageSpawner::StaticClass());
+	PrevStage = Cast<ACPPRandomStageSpawner>(ActorToFind);
+	if (!PrevStage) return;
 
 	// 最初のステージスポナーを設定する
 	TArray<TObjectPtr<AActor>> ActorsToFind;
@@ -39,14 +43,12 @@ void ACPPGameModeBase::BeginPlay()
 	{
 		TObjectPtr<ATriggerVolume> TriggerVolumeCast = Cast<ATriggerVolume>(TriggerVolume);
 		if (TriggerVolumeCast)
-		{
-			TriggerVolumeCast->OnActorBeginOverlap.AddDynamic(this, &ACPPGameModeBase::SpawnNextTrigger);
-		}
+			TriggerVolumeCast->OnActorBeginOverlap.AddDynamic(this, &ACPPGameModeBase::SpawnNext);
 	}
 
 }
 
-void ACPPGameModeBase::SpawnNextTrigger(AActor* OverlappedActor, AActor* OtherActor)
+void ACPPGameModeBase::SpawnNext(AActor* OverlappedActor, AActor* OtherActor)
 {
 	if (!Stage) return; // 生成するステージが設定されていなければ無視
 
@@ -60,34 +62,59 @@ void ACPPGameModeBase::SpawnNextTrigger(AActor* OverlappedActor, AActor* OtherAc
 	if (!TargetPoint) return; // 次の生成ポイントが見つからなければ無視
 	
 	// 次のトリガーボリュームを生成する
-	FActorSpawnParameters SpawnParam;
-	SpawnParam.Template = TriggerVolume;
-	TObjectPtr<ATriggerVolume> NewTriggerVolume = 
-		GetWorld()->SpawnActor<ATriggerVolume>(
-			TargetPoint->GetActorLocation() - TriggerVolume->GetActorLocation(), // テンプレートの分を除く
-			TargetPoint->GetActorRotation() - TriggerVolume->GetActorRotation(),
-			SpawnParam
-		);
+	ATriggerVolume* NewTriggerVolume = SpawnNextTrigger(GetWorld(), TriggerVolume, TargetPoint->GetActorLocation());
 	// 次のトリガーでも同様の処理が走るようにする
-	NewTriggerVolume->OnActorBeginOverlap.AddDynamic(this, &ACPPGameModeBase::SpawnNextTrigger);
+	NewTriggerVolume->OnActorBeginOverlap.AddDynamic(this, &ACPPGameModeBase::SpawnNext);
 
 	// ステージ生成
-	GetWorld()->SpawnActor<ACPPRandomStageSpawner>(
-		Stage,
-		TargetPoint->GetActorLocation(),
-		TargetPoint->GetActorRotation(),
-		FActorSpawnParameters()
-	);
+	PrevStage = SpawnNextStage(GetWorld(), Stage, TargetPoint->GetActorLocation(), PrevStage->NextFloorLocation);
 
 	// 次のスポーン地点を生成する
-	GetWorld()->SpawnActor<ATargetPoint>(
-		TargetPoint->GetActorLocation() + (TargetPoint->GetActorLocation() - TriggerVolume->GetActorLocation()),
-		TargetPoint->GetActorRotation(),
+	SpawnNextStageMakingPoint(
+		GetWorld(),
+		TargetPoint->GetActorLocation() + (TargetPoint->GetActorLocation() - TriggerVolume->GetActorLocation())
+	);
+	// 不要になったアクタは消しておく
+	TriggerVolume->Destroy();
+	TargetPoint->Destroy();
+}
+
+ACPPRandomStageSpawner* ACPPGameModeBase::SpawnNextStage(UWorld* World, TSubclassOf<ACPPRandomStageSpawner> StageClass, FVector Location, FVector FirstFloor)
+{
+	FTransform SpawnTransform = UKismetMathLibrary::MakeTransform(
+		Location,
+		FRotator::ZeroRotator
+	);
+	ACPPRandomStageSpawner* NewStage = World->SpawnActorDeferred<ACPPRandomStageSpawner>(
+		StageClass,
+		SpawnTransform
+	);
+	NewStage->FirstFloorLocation = FirstFloor;
+	NewStage->FinishSpawning(SpawnTransform);
+
+	return NewStage;
+}
+
+ATriggerVolume* ACPPGameModeBase::SpawnNextTrigger(UWorld* World, ATriggerVolume* TrgTemplete, FVector Location)
+
+{
+	FActorSpawnParameters SpawnParam;
+	SpawnParam.Template = TrgTemplete;
+	TObjectPtr<ATriggerVolume> NewTriggerVolume =
+		World->SpawnActor<ATriggerVolume>(
+			Location - TrgTemplete->GetActorLocation(), // テンプレートの分を除く
+			FRotator::ZeroRotator,
+			SpawnParam
+		);
+	
+	return NewTriggerVolume;
+}
+
+ATargetPoint* ACPPGameModeBase::SpawnNextStageMakingPoint(UWorld* World, FVector Location)
+{
+	return World->SpawnActor<ATargetPoint>(
+		Location,
+		FRotator::ZeroRotator,
 		FActorSpawnParameters()
 	);
-
-	TriggerVolume->Destroy(); // 発火元は破棄して再発火を防ぐ
-	TargetPoint->Destroy();
-
-	UKismetSystemLibrary::PrintString(this, FString("Triggered"));
 }

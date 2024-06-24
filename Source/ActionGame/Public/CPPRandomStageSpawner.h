@@ -35,11 +35,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "StageFloorClass")
 	TSubclassOf<class ACPPStageFloor> Floor;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Limitation")
-	uint8 NumberOfFloor = 10;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Limitation")
-	double MaxDistance = 250.0;
+	double MaxDistance = 300.0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Limitation")
 	double MinHeight = 70.0;

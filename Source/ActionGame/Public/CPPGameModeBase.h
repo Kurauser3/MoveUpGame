@@ -14,11 +14,14 @@ class ACTIONGAME_API ACPPGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 
+	UPROPERTY()
+	class ACPPRandomStageSpawner* PrevStage;
+
 public:
 	ACPPGameModeBase();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Component")
-	TSubclassOf< class ACPPRandomStageSpawner > Stage;
+	TSubclassOf<ACPPRandomStageSpawner> Stage;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -28,5 +31,17 @@ protected:
 	 * î≠âŒå≥ÇÃTriggerVolumeÇÕîjä¸Ç∑ÇÈÅB
 	 */
 	UFUNCTION()
-	void SpawnNextTrigger(AActor* OverlappedActor, AActor* OtherActor);
+	void SpawnNext(AActor* OverlappedActor, AActor* OtherActor);
+
+	UFUNCTION()
+	static ACPPRandomStageSpawner* SpawnNextStage(UWorld* World, TSubclassOf<ACPPRandomStageSpawner> StageClass, FVector Location, FVector FirstFloor = FVector(-1, -1, -1));
+
+	UFUNCTION()
+	static ATriggerVolume* SpawnNextTrigger(UWorld* World, ATriggerVolume* TrgTemplete, FVector Location);
+
+	UFUNCTION()
+	static ATargetPoint* SpawnNextStageMakingPoint(UWorld* World, FVector Location);
+	/*
+	*/
+
 };

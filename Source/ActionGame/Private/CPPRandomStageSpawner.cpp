@@ -3,9 +3,9 @@
 
 #include "CPPRandomStageSpawner.h"
 #include "CPPStageFloor.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Math/RandomStream.h"
+#include <Kismet/KismetMathLibrary.h>
+#include <Kismet/KismetSystemLibrary.h>
+#include <Math/RandomStream.h>
 
 // Entry Point ===================================================================================
 
@@ -60,19 +60,18 @@ void ACPPRandomStageSpawner::MakeNextFloorLocation()
 	double NextXMin = GetMinX(MaxDistance, PrevLocation.Y, NextFloorLocation.Z, PrevLocation);
 	// X座標をランダムに決める
 	NextFloorLocation.X = MakeRandom(NextXMax, NextXMin);
-	// エリアを超えないよう補正
-	if (NextFloorLocation.X < 0) NextFloorLocation.X = 0;
+	// エリアを超えたら前のフロアを軸に逆向きに補正
+	if (NextFloorLocation.X < 0) NextFloorLocation.X = PrevLocation.X*2 - NextFloorLocation.X;
 	if (NextFloorLocation.X > (AreaMaxVector - AreaMinVector).X)
-		NextFloorLocation.X = (AreaMaxVector - AreaMinVector).X;
+		NextFloorLocation.X = PrevLocation.X*2 - NextFloorLocation.X;
 	// XZ座標と最大の距離が分かっているのでY座標の範囲を求める
 	double NextYMax = GetMaxY(MaxDistance, NextFloorLocation.X, NextFloorLocation.Z, PrevLocation);
 	double NextYMin = GetMinY(MaxDistance, NextFloorLocation.X, NextFloorLocation.Z, PrevLocation);
 	// Y座標をランダムに決める
 	NextFloorLocation.Y = MakeRandom(NextYMax, NextYMin);
-	// エリアを超えないよう補正
-	if (NextFloorLocation.Y < 0) NextFloorLocation.Y = 0;
+	if (NextFloorLocation.Y < 0) NextFloorLocation.Y = PrevLocation.Y*2 - NextFloorLocation.Y;
 	if (NextFloorLocation.Y > (AreaMaxVector - AreaMinVector).Y)
-		NextFloorLocation.Y = (AreaMaxVector - AreaMinVector).Y;
+		NextFloorLocation.Y = PrevLocation.Y*2 - NextFloorLocation.Y;
 }
 
 void ACPPRandomStageSpawner::SpawnStage()
@@ -81,11 +80,9 @@ void ACPPRandomStageSpawner::SpawnStage()
 
 	MakeFirstFloorLocation();
 
-	// FVector Test = Area->GetComponentTransform().GetLocation();
-
 	// GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, FString::Printf(TEXT("Cnt: %f, %f, %f"), Test.X, Test.Y, Test.Z));
-	GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, FString::Printf(TEXT("Max: %f, %f, %f"), AreaMaxVector.X, AreaMaxVector.Y, AreaMaxVector.Z));
-	GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, FString::Printf(TEXT("Min: %f, %f, %f"), AreaMinVector.X, AreaMinVector.Y, AreaMinVector.Z));
+	// GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, FString::Printf(TEXT("Max: %f, %f, %f"), AreaMaxVector.X, AreaMaxVector.Y, AreaMaxVector.Z));
+	// GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, FString::Printf(TEXT("Min: %f, %f, %f"), AreaMinVector.X, AreaMinVector.Y, AreaMinVector.Z));
 	// GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, FString::Printf(TEXT("First: %f %f %f"), NextFloorLocation.X, NextFloorLocation.Y, NextFloorLocation.Z));
 
 	uint16 SafetyCount = 0; // 無限ループ回避
@@ -94,12 +91,8 @@ void ACPPRandomStageSpawner::SpawnStage()
 		SafetyCount++;
 		SpawnFloor(NextFloorLocation, AreaMaxVector, AreaMinVector, Floor, GetWorld());
 		MakeNextFloorLocation();
-		/*
-		*/
 	}
-	/*
-	*/
-	GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, FString::Printf(TEXT("Count: %d"), SafetyCount));
+	// GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, FString::Printf(TEXT("Count: %d"), SafetyCount));
 
 	// このステージに続く形でステージがスポーンされる場合は、この値をフロアの初期位置にできる
 	NextFloorLocation.Z = NextFloorLocation.Z - (AreaMaxVector.Z - AreaMinVector.Z);
@@ -172,8 +165,7 @@ void ACPPRandomStageSpawner::SpawnFloor(FVector Location, FVector Max, FVector M
 	if (!World) return;
 	if (!Actor) return;
 	if (!ValidateLocation(Location, Max-Min, FVector::ZeroVector)) return;
-	GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, FString::Printf(TEXT("Spawn: %f, %f, %f"), Location.X, Location.Y, Location.Z));
-
+	// GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, FString::Printf(TEXT("Spawn: %f, %f, %f"), Location.X, Location.Y, Location.Z));
 
 	FTransform SpawnTransform = UKismetMathLibrary::MakeTransform(
 		Min + Location,
@@ -189,6 +181,7 @@ void ACPPRandomStageSpawner::SpawnFloor(FVector Location, FVector Max, FVector M
 	if (NewLocation.X - Extent.X < Min.X) NewLocation.X += Extent.X;
 	if (NewLocation.Y - Extent.Y < Min.Y) NewLocation.Y += Extent.Y;
 	SpawnTransform.SetLocation(NewLocation);
+
 	NewFloor->FinishSpawning(SpawnTransform);
 }
 
