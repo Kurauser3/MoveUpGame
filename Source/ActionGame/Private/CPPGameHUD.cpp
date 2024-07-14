@@ -5,6 +5,7 @@
 void ACPPGameHUD::BeginPlay()
 {
     ShowGameHelp();
+    ShowGameScore();
 }
 
 void ACPPGameHUD::ShowGameOver()
@@ -21,7 +22,12 @@ void ACPPGameHUD::ShowGameOver()
 
 void ACPPGameHUD::ShowGameScore()
 {
+    if (!PlayerOwner) return;
+    if (!GameOverWidgetClass) return;
 
+    TObjectPtr<UUserWidget> Widget = UWidgetBlueprintLibrary::Create(this, GameScoreWidgetClass, PlayerOwner);
+    GameScoreWidget = Cast<UCPPGameStateWidget>(Widget);
+    Widget->AddToViewport();
 }
 
 void ACPPGameHUD::ShowCharacterState()

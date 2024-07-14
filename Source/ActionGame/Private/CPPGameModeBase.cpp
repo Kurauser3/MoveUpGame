@@ -104,7 +104,8 @@ void ACPPGameModeBase::SpawnNext(AActor* OverlappedActor, AActor* OtherActor)
 {
     if (!Stage) return; // 生成するステージが設定されていなければ無視
 
-    if (!Cast<ACharacter>(OtherActor)) return; // オーバーラップしたのがキャラクターでなければ無視
+    ACharacter* Player = Cast<ACharacter>(OtherActor);
+    if (!Player) return; // オーバーラップしたのがキャラクターでなければ無視
 
     TObjectPtr<ATriggerVolume> TriggerVolume = Cast<ATriggerVolume>(OverlappedActor);
     if (!TriggerVolume) return; // 発火元がトリガーボリュームでなければ無視
@@ -133,6 +134,13 @@ void ACPPGameModeBase::SpawnNext(AActor* OverlappedActor, AActor* OtherActor)
     TargetPoint->Destroy();
 
     Progress++; // ステージ進捗+
+    APlayerController* PlayerController = Cast<APlayerController>(Player->GetController());
+    if (PlayerController)
+    {
+        // スコア表示
+        ACPPGameHUD* GameHUD = Cast<ACPPGameHUD>(PlayerController->GetHUD());
+        if (GameHUD && GameHUD->GameScoreWidget) GameHUD->GameScoreWidget->SetScoreText(100 * Progress);
+    }
 }
 
 void ACPPGameModeBase::IncreaseMagmaSpeed()
