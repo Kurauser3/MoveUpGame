@@ -14,7 +14,29 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
 	TSubclassOf< UUserWidget > GameOverWidgetClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
+	TSubclassOf< UUserWidget > GameScoreWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
+	TSubclassOf< UUserWidget > CharacterStateWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
+	TSubclassOf< UUserWidget > GameHelpWidgetClass;
+
 	UFUNCTION()
 	void ShowGameOver();
+
+	UFUNCTION()
+	void ShowGameScore();
+
+	UFUNCTION()
+	void ShowCharacterState();
+
+	UFUNCTION()
+	void ShowGameHelp();
+
+protected:
+
+	virtual void BeginPlay() override;
 
 };
