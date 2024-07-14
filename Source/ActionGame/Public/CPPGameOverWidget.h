@@ -2,26 +2,28 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "CPPMainMenuWidget.generated.h"
+#include "CPPGameOverWidget.generated.h"
 
 class UButton;
 
 UCLASS()
-class ACTIONGAME_API UCPPMainMenuWidget : public UUserWidget
+class ACTIONGAME_API UCPPGameOverWidget : public UUserWidget
 {
 	GENERATED_BODY()
-
+	
 protected:
 	void NativeConstruct() override;
 
 private:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> Play;
+	TObjectPtr<UButton> Restart;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> Options;
+	TObjectPtr<UButton> Title;
 
 	UFUNCTION()
-	void OnPlayClicked();
-	
+	void OnRestartClicked();
+
+	UFUNCTION()
+	void OnTitleClicked();
 };

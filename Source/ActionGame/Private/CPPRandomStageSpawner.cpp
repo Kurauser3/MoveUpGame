@@ -33,6 +33,9 @@ void ACPPRandomStageSpawner::BeginPlay()
 	// エリアのサイズを取得
 	AreaMaxVector = Area->GetComponentTransform().GetLocation() + Area->GetScaledBoxExtent();
 	AreaMinVector = Area->GetComponentTransform().GetLocation() - Area->GetScaledBoxExtent();
+	// ステージ外壁のサイズを取得
+	WallMaxVextor = StageWall->GetComponentLocation() + StageWall->GetStaticMesh()->GetBounds().BoxExtent;
+	WallMinVector = StageWall->GetComponentLocation() - StageWall->GetStaticMesh()->GetBounds().BoxExtent;
 
 	SpawnStage();
 }

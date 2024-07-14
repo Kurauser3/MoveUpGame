@@ -18,6 +18,9 @@ class ACTIONGAME_API ACPPPlayer : public ACharacter
 	UPROPERTY(VisibleAnywhere)
 	bool bJumpChargeStarted = false;
 
+	UPROPERTY(EditDefaultsOnly)
+	float JumpChargeSpeed = 1.5f;
+
 public:
 	// Sets default values for this character's properties
 	ACPPPlayer();
@@ -48,15 +51,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputAction* MoveCameraAction;
 
-	// アニメーション ---------------------------------------------------
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-	class ULevelSequence* WalkSequence;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Limitation")
 	float MinJumpVelocity = 250.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Limitation")
-	float MaxJumpVelocity = 500.f;
+	float MaxJumpVelocity = 550.f;
+
+	UFUNCTION()
+	/* プレイヤーが死ぬときの処理 */
+	void KillOwn();
 
 protected:
 

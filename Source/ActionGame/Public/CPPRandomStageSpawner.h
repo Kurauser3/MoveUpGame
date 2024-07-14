@@ -12,12 +12,6 @@ UCLASS()
 class ACTIONGAME_API ACPPRandomStageSpawner : public AActor
 {
 	GENERATED_BODY()
-
-	UPROPERTY(VisibleAnywhere)
-	FVector AreaMaxVector;
-
-	UPROPERTY(VisibleAnywhere)
-	FVector AreaMinVector;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -34,6 +28,18 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "StageFloorClass")
 	TSubclassOf<class ACPPStageFloor> Floor;
+
+	UPROPERTY(VisibleAnywhere)
+	FVector AreaMaxVector;
+
+	UPROPERTY(VisibleAnywhere)
+	FVector WallMaxVextor;
+
+	UPROPERTY(VisibleAnywhere)
+	FVector AreaMinVector;
+
+	UPROPERTY(VisibleAnywhere)
+	FVector WallMinVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Limitation")
 	double MaxDistance = 300.0;

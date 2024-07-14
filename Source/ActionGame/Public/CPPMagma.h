@@ -19,12 +19,19 @@ public:
 	ACPPMagma();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	double Speed = 0.f;
+	double BaseSpeed = 40.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<USceneComponent> SceneRoot;
+	double Speed = 0.f;
+
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	// TObjectPtr<USceneComponent> SceneRoot;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TObjectPtr<UStaticMeshComponent> MagmaMesh;
+	
+	// UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	// TObjectPtr<class UProjectileMovementComponent> Movement;
 
 protected:
 	// Called when the game starts or when spawned
