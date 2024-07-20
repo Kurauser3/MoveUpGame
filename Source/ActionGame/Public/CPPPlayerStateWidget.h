@@ -4,24 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "CPPGameStateWidget.generated.h"
+#include "CPPPlayerStateWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ACTIONGAME_API UCPPGameStateWidget : public UUserWidget
+class ACTIONGAME_API UCPPPlayerStateWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
 public:
 
 	UFUNCTION()
-	void SetScoreText(uint32 Score);
-
+	void SetChargingProgress(float Progress, float Max, float Min);
+	
 private:
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UTextBlock> ScoreText;
-
+	TObjectPtr<class UProgressBar> ChargeBar;
 };

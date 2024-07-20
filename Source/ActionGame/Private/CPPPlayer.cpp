@@ -119,30 +119,35 @@ void ACPPPlayer::MoveCamera(const FInputActionValue& Value)
 
 }
 
+// デバッグ用のキーバインドを用意するのが面倒なのでジャンプをトリガーに色々出力してみる
 void ACPPPlayer::TestJump()
 {
+	// ジャンプの処理
 	if (!bJumpChargeStarted) return;
 	bJumpChargeStarted = false;
 	GetCharacterMovement()->JumpZVelocity = JumpVelocity;
 	Jump();
+	OnJump.Broadcast(this);
 	JumpVelocity = MinJumpVelocity;
-	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f, %f, %f"), TestCameraVectorF.X, TestCameraVectorF.Y, TestCameraVectorF.Z));
-	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f, %f, %f"), TestCameraVectorR.X, TestCameraVectorR.Y, TestCameraVectorR.Z));
+	
+	// ここからテスト、デバッグ用の内容
+	// UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f, %f, %f"), TestCameraVectorF.X, TestCameraVectorF.Y, TestCameraVectorF.Z));
+	// UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f, %f, %f"), TestCameraVectorR.X, TestCameraVectorR.Y, TestCameraVectorR.Z));
 }
 
 void ACPPPlayer::JumpCharge(const FInputActionInstance& Value)
 {
-	if (!CanJump()) bJumpChargeStarted = false;
 	if (!bJumpChargeStarted) return;
 	JumpVelocity += Value.GetElapsedTime() * JumpChargeSpeed;
 	if (JumpVelocity > MaxJumpVelocity)	JumpVelocity = MaxJumpVelocity;
-	GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, FString::Printf(TEXT("Charge: %f"), JumpVelocity));
+	OnCharge.Broadcast(this, JumpVelocity, MinJumpVelocity, MaxJumpVelocity);
 }
 
 void ACPPPlayer::JumpChargeStarted()
 {
 	bJumpChargeStarted = true;
 	GetCharacterMovement()->MaxWalkSpeed = 0.f;
+	if (!CanJump()) bJumpChargeStarted = false;
 }
 
 void ACPPPlayer::Tick(float DeltaTime)

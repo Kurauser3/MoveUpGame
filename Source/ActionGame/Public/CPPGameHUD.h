@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CPPGameStateWidget.h"
+#include "CPPPlayerStateWidget.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
@@ -28,6 +29,9 @@ public:
 	UPROPERTY(VisibleAnywhere)
     TObjectPtr< UCPPGameStateWidget > GameScoreWidget;
 
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr< UCPPPlayerStateWidget > PlayerStateWidget;
+
 	UFUNCTION()
 	void ShowGameOver();
 
@@ -36,6 +40,9 @@ public:
 
 	UFUNCTION()
 	void ShowCharacterState();
+
+	UFUNCTION()
+	void RemoveCharacterState();
 
 	UFUNCTION()
 	void ShowGameHelp();

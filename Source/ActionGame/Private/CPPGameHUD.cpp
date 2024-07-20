@@ -32,7 +32,21 @@ void ACPPGameHUD::ShowGameScore()
 
 void ACPPGameHUD::ShowCharacterState()
 {
+    if (!PlayerOwner) return;
+    if (!CharacterStateWidgetClass) return;
 
+    TObjectPtr<UUserWidget> Widget = UWidgetBlueprintLibrary::Create(this, CharacterStateWidgetClass, PlayerOwner);
+    PlayerStateWidget = Cast<UCPPPlayerStateWidget>(Widget);
+    Widget->AddToViewport();
+}
+
+
+
+void ACPPGameHUD::RemoveCharacterState()
+{
+    if (!PlayerStateWidget) return;
+    PlayerStateWidget->RemoveFromViewport();
+    PlayerStateWidget = nullptr;
 }
 
 void ACPPGameHUD::ShowGameHelp()

@@ -7,23 +7,32 @@
 #include "InputActionValue.h"
 #include "CPPPlayer.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnJump, ACPPPlayer*, Player);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnCharacterChargingJumpPower, ACPPPlayer*, Player, float, JumpVelocity, float, Min, float, Max);
+
 UCLASS()
 class ACTIONGAME_API ACPPPlayer : public ACharacter
 {
 	GENERATED_BODY()
 
-	UPROPERTY(VisibleAnywhere)
-	float JumpVelocity = 250.f;
-
-	UPROPERTY(VisibleAnywhere)
-	bool bJumpChargeStarted = false;
-
 	UPROPERTY(EditDefaultsOnly)
 	float JumpChargeSpeed = 1.5f;
+
+	UPROPERTY(VisibleAnywhere)
+	float JumpVelocity = 250.f;
 
 public:
 	// Sets default values for this character's properties
 	ACPPPlayer();
+
+	UPROPERTY(VisibleAnywhere)
+	bool bJumpChargeStarted = false;
+	
+	UPROPERTY(BlueprintAuthorityOnly)
+	FOnJump OnJump;
+
+	UPROPERTY(BlueprintAuthorityOnly)
+	FOnCharacterChargingJumpPower OnCharge;
 
 	// ÉJÉÅÉâ ------------------------------------------------------------
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera")

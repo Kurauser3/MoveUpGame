@@ -48,6 +48,15 @@ void ACPPGameModeBase::BeginPlay()
             TriggerVolumeCast->OnActorBeginOverlap.AddDynamic(this, &ACPPGameModeBase::HandleOverlapSpawnTrigger);
     }
 
+    // プレイヤーがジャンプの溜めをしている間チャージ進捗をプログレスバーで表示する
+    ActorToFind = UGameplayStatics::GetActorOfClass(this, ACPPPlayer::StaticClass());
+    TObjectPtr<ACPPPlayer> Player = Cast<ACPPPlayer>(ActorToFind);
+    if (Player)
+    {
+        Player->OnCharge.AddDynamic(this, &ACPPGameModeBase::HandleCharacterCharging);
+        Player->OnJump.AddDynamic(this, &ACPPGameModeBase::HandleCharacterJump);
+    }
+
     // マグマに当たったらゲームオーバー +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     // 本来はキャラクターにヒット、あるいはオーバーラップした時に作動してほしいが、キャラクターが動いていない時に効かなかったので保留
@@ -73,7 +82,6 @@ void ACPPGameModeBase::HandleOverlapSpawnTrigger(AActor* OverlappedActor, AActor
 // ※ヒット判定がうまくいっていないため、仕様を保留している処理
 void ACPPGameModeBase::HandleOverlapMagma(AActor* OverlappedActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, TEXT("Overlap"));
     ACPPPlayer* Player = Cast<ACPPPlayer>(OverlappedActor);
     if (!Player) return;
     ACPPMagma* Magma = Cast<ACPPMagma>(OtherActor);
@@ -89,7 +97,6 @@ void ACPPGameModeBase::HandleOverlapMagma(AActor* OverlappedActor, AActor* Other
 
 void ACPPGameModeBase::HandleOverlapMagmaTEMP(class ACPPMagma* Magma, class ACPPPlayer* Player)
 {
-    GEngine->AddOnScreenDebugMessage(-1, 30, FColor::Cyan, TEXT("Overlap!!!!!!!!"));
     APlayerController* PlayerController = Cast<APlayerController>(Player->GetController());
     if (PlayerController)
     {
@@ -98,6 +105,29 @@ void ACPPGameModeBase::HandleOverlapMagmaTEMP(class ACPPMagma* Magma, class ACPP
     }
     Player->KillOwn(); // プレイヤーをキル(操作を切り離す)
 
+}
+
+void ACPPGameModeBase::HandleCharacterCharging(ACPPPlayer* Player, float JumpVelocity, float Min, float Max)
+{
+    APlayerController* PlayerController = Cast<APlayerController>(Player->GetController());
+    ACPPGameHUD* GameHUD = nullptr;
+    if (PlayerController) GameHUD = Cast<ACPPGameHUD>(PlayerController->GetHUD());
+    if (!GameHUD) return;
+    if (!bChargingProgressShown)
+    {
+        GameHUD->ShowCharacterState();
+        bChargingProgressShown = true;
+    }
+    if (GameHUD->PlayerStateWidget) GameHUD->PlayerStateWidget->SetChargingProgress(JumpVelocity, Max, Min);
+}
+
+void ACPPGameModeBase::HandleCharacterJump(ACPPPlayer* Player)
+{
+    APlayerController* PlayerController = Cast<APlayerController>(Player->GetController());
+    ACPPGameHUD* GameHUD = nullptr;
+    if (PlayerController) GameHUD = Cast<ACPPGameHUD>(PlayerController->GetHUD());
+    if (GameHUD) GameHUD->RemoveCharacterState();
+    bChargingProgressShown = false;
 }
 
 void ACPPGameModeBase::SpawnNext(AActor* OverlappedActor, AActor* OtherActor)

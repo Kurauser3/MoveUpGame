@@ -22,6 +22,9 @@ class ACTIONGAME_API ACPPGameModeBase : public AGameModeBase
 	/* ステージの進捗。ステージが生成される毎に一つ上がる */
 	uint32 Progress = 0;
 
+	UPROPERTY(VisibleAnywhere)
+	bool bChargingProgressShown = false;
+
 public:
 	ACPPGameModeBase();
 
@@ -42,6 +45,12 @@ protected:
 
 	UFUNCTION()
 	void HandleOverlapMagmaTEMP(class ACPPMagma* Magma, class ACPPPlayer* Player);
+
+	UFUNCTION()
+	void HandleCharacterCharging(ACPPPlayer* Player, float JumpVelocity, float Min, float Max);
+
+	UFUNCTION()
+	void HandleCharacterJump(ACPPPlayer* Player);
 
 	UFUNCTION()
 	/* ゲームがステージ生成を行うための一通りの手続き */
