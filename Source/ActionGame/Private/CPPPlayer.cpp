@@ -58,7 +58,14 @@ void ACPPPlayer::BeginPlay()
 void ACPPPlayer::KillOwn()
 {
 	GetController()->UnPossess();
-	SetActorEnableCollision(false);
+
+	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+	// GetMesh()->SetAllBodiesSimulatePhysics(true);
+	GetMesh()->SetSimulatePhysics(true);
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->SetComponentTickEnabled(false);
+
 }
 
 
