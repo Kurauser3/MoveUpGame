@@ -13,10 +13,12 @@ void UCPPGameOverWidget::NativeConstruct()
 
 void UCPPGameOverWidget::OnRestartClicked()
 {
-    UGameplayStatics::OpenLevel(this, FName(TEXT("MoveUp")));
+    if (ReloadLevel.IsNull()) return;
+    UGameplayStatics::OpenLevelBySoftObjectPtr(this, ReloadLevel);
 }
 
 void UCPPGameOverWidget::OnTitleClicked()
 {
-    UGameplayStatics::OpenLevel(this, FName(TEXT("MainMenu")));
+    if (MainManu.IsNull()) return;
+    UGameplayStatics::OpenLevelBySoftObjectPtr(this, MainManu);
 }

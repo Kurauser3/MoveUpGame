@@ -15,6 +15,12 @@ protected:
 	void NativeConstruct() override;
 
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Map")
+	TSoftObjectPtr<UWorld> MainManu;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Map")
+	TSoftObjectPtr<UWorld> ReloadLevel;
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Restart;
 

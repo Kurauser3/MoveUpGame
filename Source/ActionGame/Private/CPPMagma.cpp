@@ -7,6 +7,8 @@
 // Sets default values
 ACPPMagma::ACPPMagma()
 {
+	UE_LOG(LogTemp, Log, TEXT("MyLog: MagmaConstructorBegin"));
+
 	PrimaryActorTick.bCanEverTick = true;
 
 	/*
@@ -26,6 +28,8 @@ ACPPMagma::ACPPMagma()
 	// MagmaMesh->SetupAttachment(SceneRoot);
 
 	MagmaMesh->SetNotifyRigidBodyCollision(true); // HitƒCƒxƒ“ƒg‚ğ¶¬‚·‚é
+	UE_LOG(LogTemp, Log, TEXT("MyLog: MagmaConstructorEnd"));
+
 }
 
 // Called when the game starts or when spawned

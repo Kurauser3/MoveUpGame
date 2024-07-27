@@ -15,6 +15,8 @@
 
 ACPPPlayer::ACPPPlayer()
 {
+	UE_LOG(LogTemp, Log, TEXT("MyLog: PlayerConstructorBegin"));
+
 	PrimaryActorTick.bCanEverTick = true;
 
 	GetCapsuleComponent()->InitCapsuleSize(42.0f, 96.0f);	// 当たり判定範囲
@@ -37,11 +39,14 @@ ACPPPlayer::ACPPPlayer()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraBoom);
 
+	UE_LOG(LogTemp, Log, TEXT("MyLog: PlayerConstructorEnd"));
 
 }
 
 void ACPPPlayer::BeginPlay()
 {
+	UE_LOG(LogTemp, Log, TEXT("MyLog: PlayerBeginPlayBegin"));
+
 	Super::BeginPlay();
 
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
@@ -52,15 +57,16 @@ void ACPPPlayer::BeginPlay()
 		}
 	}
 	CameraBoom->bUsePawnControlRotation = true;	// カメラを動かすのに必要な設定(コントローラーの向きに追従する)
-	
+	UE_LOG(LogTemp, Log, TEXT("MyLog: PlayerBeginPlayEnd"));
+
 }
 
 void ACPPPlayer::KillOwn()
 {
 	GetController()->UnPossess();
 
+	// 物理に任せる
 	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-	// GetMesh()->SetAllBodiesSimulatePhysics(true);
 	GetMesh()->SetSimulatePhysics(true);
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->DisableMovement();

@@ -12,6 +12,7 @@
 // Sets default values
 ACPPRandomStageSpawner::ACPPRandomStageSpawner()
 {
+	UE_LOG(LogTemp, Log, TEXT("MyLog: StageSpawnerConstructorBegin"));
 
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(FName(TEXT("SceneRoot")));
 	RootComponent = SceneRoot;
@@ -21,6 +22,7 @@ ACPPRandomStageSpawner::ACPPRandomStageSpawner()
 
 	Area = CreateDefaultSubobject<UBoxComponent>(FName(TEXT("Area")));
 	Area->SetupAttachment(StageWall);
+	UE_LOG(LogTemp, Log, TEXT("MyLog: StageSpawnerConstructorEnd"));
 
 }
 
@@ -28,6 +30,8 @@ ACPPRandomStageSpawner::ACPPRandomStageSpawner()
 // Called when the game starts or when spawned
 void ACPPRandomStageSpawner::BeginPlay()
 {
+	UE_LOG(LogTemp, Log, TEXT("MyLog: StageSpawnerBeginPlayBegin"));
+
 	Super::BeginPlay();
 
 	// エリアのサイズを取得
@@ -38,6 +42,8 @@ void ACPPRandomStageSpawner::BeginPlay()
 	WallMinVector = StageWall->GetComponentLocation() - StageWall->GetStaticMesh()->GetBounds().BoxExtent;
 
 	SpawnStage();
+	UE_LOG(LogTemp, Log, TEXT("MyLog: StageSpawnerBeginPlayEnd"));
+
 }
 
 // Effect =========================================================================================

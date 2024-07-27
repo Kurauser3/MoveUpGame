@@ -6,11 +6,13 @@
 // Sets default values
 ACPPStageFloor::ACPPStageFloor()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	UE_LOG(LogTemp, Log, TEXT("MyLog: StageFloorConstructorBegin"));
+
 	PrimaryActorTick.bCanEverTick = true;
 
 	Floor = CreateDefaultSubobject<UStaticMeshComponent>(FName("Floor"));
 	Floor->SetupAttachment(RootComponent);
+	UE_LOG(LogTemp, Log, TEXT("MyLog: StageFloorConstructorEnd"));
 
 }
 

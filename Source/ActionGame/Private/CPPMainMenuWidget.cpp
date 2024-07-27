@@ -12,5 +12,6 @@ void UCPPMainMenuWidget::NativeConstruct()
 
 void UCPPMainMenuWidget::OnPlayClicked()
 {
-    UGameplayStatics::OpenLevel(this, FName(TEXT("MoveUp")));
+    if (LoadLevel.IsNull()) return;
+    UGameplayStatics::OpenLevelBySoftObjectPtr(this, LoadLevel);
 }

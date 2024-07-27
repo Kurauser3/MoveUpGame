@@ -15,6 +15,10 @@ protected:
 	void NativeConstruct() override;
 
 private:
+
+	UPROPERTY(EditDefaultsOnly, Category = "Map")
+	TSoftObjectPtr<UWorld> LoadLevel;
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> Play;
 

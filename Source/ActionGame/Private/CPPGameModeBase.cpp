@@ -17,15 +17,20 @@
 
 ACPPGameModeBase::ACPPGameModeBase()
 {
+    UE_LOG(LogTemp, Log, TEXT("MyLog: GameModeConstructorBegin"));
     static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Developers/tkr31/Characters/BP_Player"));
     if (PlayerPawnBPClass.Class != NULL)
     {
         DefaultPawnClass = PlayerPawnBPClass.Class;
     }
+    UE_LOG(LogTemp, Log, TEXT("MyLog: GameModeConstructorEnd"));
+
 }
 
 void ACPPGameModeBase::BeginPlay()
 {
+    UE_LOG(LogTemp, Log, TEXT("MyLog: GameModeBeginPlayBegin"));
+
     // 他のUIから遷移してきた場合はマウス操作をゲームに戻す必要があるのでここで設定
     TObjectPtr<APlayerController> Controller = UGameplayStatics::GetPlayerController(this, 0);
     if (Controller)
@@ -71,6 +76,9 @@ void ACPPGameModeBase::BeginPlay()
     TObjectPtr<ACPPGameObserver> Observer = Cast<ACPPGameObserver>(ActorToFind);
     if (Observer)
         Observer->OnMagmaHitCharacter.AddDynamic(this, &ACPPGameModeBase::HandleOverlapMagmaTEMP);
+
+    UE_LOG(LogTemp, Log, TEXT("MyLog: GameModeBeginPlayEnd"));
+
 }
 
 void ACPPGameModeBase::HandleOverlapSpawnTrigger(AActor* OverlappedActor, AActor* OtherActor)
