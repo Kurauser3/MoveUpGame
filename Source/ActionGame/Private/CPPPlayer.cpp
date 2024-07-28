@@ -15,16 +15,17 @@
 
 ACPPPlayer::ACPPPlayer()
 {
+	UE_LOG(LogTemp, Log, TEXT("MyLog: PlayerConstructorBegin"));
+
 	PrimaryActorTick.bCanEverTick = true;
 
-	GetCapsuleComponent()->InitCapsuleSize(25.0f, 90.0f);	// 当たり判定範囲
+	GetCapsuleComponent()->InitCapsuleSize(42.0f, 96.0f);	// 当たり判定範囲
 
 	// 移動のパラメーター
 	bUseControllerRotationYaw = false;	// キャラクターの向きをコントローラーの向きに追従させない
 	GetCharacterMovement()->bOrientRotationToMovement = true;	// キャラクターの正面を移動方向に向ける
 	GetCharacterMovement()->AirControl = 0.75f;
-	GetCharacterMovement()->JumpZVelocity = 200.0f;
-	GetCharacterMovement()->GravityScale = 0.5f;
+	GetCharacterMovement()->GravityScale = 0.4f;
 	GetCharacterMovement()->MaxStepHeight = 5.0f;
 	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
 	GetCharacterMovement()->MaxAcceleration = 400.0f;	// 歩き、走りの加速
@@ -38,11 +39,14 @@ ACPPPlayer::ACPPPlayer()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraBoom);
 
+	UE_LOG(LogTemp, Log, TEXT("MyLog: PlayerConstructorEnd"));
 
 }
 
 void ACPPPlayer::BeginPlay()
 {
+	UE_LOG(LogTemp, Log, TEXT("MyLog: PlayerBeginPlayBegin"));
+
 	Super::BeginPlay();
 
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
@@ -53,23 +57,56 @@ void ACPPPlayer::BeginPlay()
 		}
 	}
 	CameraBoom->bUsePawnControlRotation = true;	// カメラを動かすのに必要な設定(コントローラーの向きに追従する)
-	
+	UE_LOG(LogTemp, Log, TEXT("MyLog: PlayerBeginPlayEnd"));
+
+}
+
+void ACPPPlayer::KillOwn()
+{
+	GetController()->UnPossess();
+
+	// 物理に任せる
+	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+	GetMesh()->SetSimulatePhysics(true);
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->SetComponentTickEnabled(false);
+
+}
+
+
+// プレイヤーの操作 -----------------------------------------------------------------------------------------------------------------------------
+
+void ACPPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
+
+		// 各アクションをバインド
+		// EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACPPPlayer::TestJump);
+		EnhancedInputComponent->BindAction(JumpChargeAction, ETriggerEvent::Started, this, &ACPPPlayer::JumpChargeStarted);
+		EnhancedInputComponent->BindAction(JumpChargeAction, ETriggerEvent::Ongoing, this, &ACPPPlayer::JumpCharge);
+		// EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ACPPPlayer::Move);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ACPPPlayer::Sprint);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ACPPPlayer::Walk);
+		EnhancedInputComponent->BindAction(MoveCameraAction, ETriggerEvent::Triggered, this, &ACPPPlayer::MoveCamera);
+
+	}
 }
 
 void ACPPPlayer::Move(const FInputActionValue& Value)
 {
+	if (bJumpChargeStarted) return;
+	GetCharacterMovement()->MaxWalkSpeed = 200.0f;
+
 	FVector2D Input = Value.Get<FVector2D>();
 
 	AddMovementInput(Camera->GetForwardVector().GetSafeNormal2D(), Input.Y);
 	AddMovementInput(Camera->GetRightVector().GetSafeNormal2D(), Input.X);
 
-	if (!WalkSequence) return;
-	static ALevelSequenceActor* LSActor = nullptr;
-	static ULevelSequencePlayer* LSPlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(this, WalkSequence, FMovieSceneSequencePlaybackSettings(), LSActor);
-	if (LSPlayer->IsPlaying()) return;
-	LSPlayer->Play();
-	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f, %f, %f"), TestCameraVectorF.X, TestCameraVectorF.Y, TestCameraVectorF.Z));
-	
 }
 
 void ACPPPlayer::Sprint(const FInputActionValue& Value)
@@ -79,7 +116,8 @@ void ACPPPlayer::Sprint(const FInputActionValue& Value)
 
 void ACPPPlayer::Walk(const FInputActionValue& Value)
 {
-	GetCharacterMovement()->MaxWalkSpeed = 130.0f;
+	if (bJumpChargeStarted) return;
+	GetCharacterMovement()->MaxWalkSpeed = 200.0f;
 }
 
 void ACPPPlayer::MoveCamera(const FInputActionValue& Value)
@@ -91,37 +129,41 @@ void ACPPPlayer::MoveCamera(const FInputActionValue& Value)
 
 	AddControllerYawInput(Input.X);
 	AddControllerPitchInput(Input.Y);
-	
+
 }
 
-
+// デバッグ用のキーバインドを用意するのが面倒なのでジャンプをトリガーに色々出力してみる
 void ACPPPlayer::TestJump()
 {
+	// ジャンプの処理
+	if (!bJumpChargeStarted) return;
+	bJumpChargeStarted = false;
+	GetCharacterMovement()->JumpZVelocity = JumpVelocity;
 	Jump();
-	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f, %f, %f"), TestCameraVectorF.X, TestCameraVectorF.Y, TestCameraVectorF.Z));
-	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f, %f, %f"), TestCameraVectorR.X, TestCameraVectorR.Y, TestCameraVectorR.Z));
+	OnJump.Broadcast(this);
+	JumpVelocity = MinJumpVelocity;
+	
+	// ここからテスト、デバッグ用の内容
+	// UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f, %f, %f"), TestCameraVectorF.X, TestCameraVectorF.Y, TestCameraVectorF.Z));
+	// UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%f, %f, %f"), TestCameraVectorR.X, TestCameraVectorR.Y, TestCameraVectorR.Z));
+}
+
+void ACPPPlayer::JumpCharge(const FInputActionInstance& Value)
+{
+	if (!bJumpChargeStarted) return;
+	JumpVelocity += Value.GetElapsedTime() * JumpChargeSpeed;
+	if (JumpVelocity > MaxJumpVelocity)	JumpVelocity = MaxJumpVelocity;
+	OnCharge.Broadcast(this, JumpVelocity, MinJumpVelocity, MaxJumpVelocity);
+}
+
+void ACPPPlayer::JumpChargeStarted()
+{
+	bJumpChargeStarted = true;
+	GetCharacterMovement()->MaxWalkSpeed = 0.f;
+	if (!CanJump()) bJumpChargeStarted = false;
 }
 
 void ACPPPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-
-void ACPPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-
-		// 各アクションをバインド
-		// EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACPPPlayer::TestJump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ACPPPlayer::Move);
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ACPPPlayer::Sprint);
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ACPPPlayer::Walk);
-		EnhancedInputComponent->BindAction(MoveCameraAction, ETriggerEvent::Triggered, this, &ACPPPlayer::MoveCamera);
-
-	}
-}
-

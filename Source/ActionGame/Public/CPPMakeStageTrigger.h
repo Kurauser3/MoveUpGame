@@ -13,5 +13,4 @@ UCLASS()
 class ACTIONGAME_API ACPPMakeStageTrigger : public ATriggerVolume
 {
 	GENERATED_BODY()
-	
 };
