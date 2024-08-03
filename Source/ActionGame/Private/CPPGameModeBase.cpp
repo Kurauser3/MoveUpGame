@@ -4,6 +4,7 @@
 #include "CPPRandomStageSpawner.h"
 #include "CPPMagma.h"
 #include "CPPPlayer.h"
+#include "CPPPlayerState.h"
 #include "CPPGameObserver.h"
 #include "CPPGameHUD.h"
 
@@ -62,8 +63,8 @@ void ACPPGameModeBase::BeginPlay()
 
     // マグマに当たったらゲームオーバー +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    // 本来はキャラクターにヒット、あるいはオーバーラップした時に作動してほしいが、キャラクターが動いていない時に効かなかったので保留
     /*
+    本来はキャラクターにヒット、あるいはオーバーラップした時に作動してほしいが、キャラクターが動いていない時に効かなかったので保留
     ActorToFind = UGameplayStatics::GetActorOfClass(this, ACPPMagma::StaticClass());
     TObjectPtr<ACPPMagma> Magma = Cast<ACPPMagma>(ActorToFind);
     if (Magma)
@@ -80,7 +81,7 @@ void ACPPGameModeBase::BeginPlay()
 void ACPPGameModeBase::HandleOverlapSpawnTrigger(AActor* OverlappedActor, AActor* OtherActor)
 {
     SpawnNext(OverlappedActor, OtherActor);
-    IncreaseMagmaSpeed();
+    IncreaseMagmaSpeed(1);
 }
 
 // ※ヒット判定がうまくいっていないため、仕様を保留している処理
@@ -136,9 +137,12 @@ void ACPPGameModeBase::HandleCharacterJump(ACPPPlayer* Player)
 
 void ACPPGameModeBase::HandleCharacterLanding(ACPPPlayer* Player, float FallingTime)
 {
-    if (Player->LocationJumpingStarted.Z >= Player->GetActorLocation().Z + 10.0) return;
+    if (Player->LocationJumpingStarted.Z + 3.0 >= Player->GetActorLocation().Z) return;
 
     GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Cyan, FString::Printf(TEXT("time: %f"), FallingTime));
+
+    EJumpingEvaluation Eval = EvaluateJumping(FallingTime);
+    IncreaseJumpScore(Player, JumpScoreMap[Eval]);
 }
 
 void ACPPGameModeBase::SpawnNext(AActor* OverlappedActor, AActor* OtherActor)
@@ -174,25 +178,71 @@ void ACPPGameModeBase::SpawnNext(AActor* OverlappedActor, AActor* OtherActor)
     TriggerVolume->Destroy();
     TargetPoint->Destroy();
 
-    Progress++; // ステージ進捗+
-    APlayerController* PlayerController = Cast<APlayerController>(Player->GetController());
-    if (PlayerController)
-    {
-        // スコア表示
-        ACPPGameHUD* GameHUD = Cast<ACPPGameHUD>(PlayerController->GetHUD());
-        if (GameHUD && GameHUD->GameScoreWidget) GameHUD->GameScoreWidget->SetScoreText(100 * Progress);
-    }
+    IncreaseProgress(Player);
 }
 
-void ACPPGameModeBase::IncreaseMagmaSpeed()
+void ACPPGameModeBase::IncreaseMagmaSpeed(uint16 increment)
 {
     TObjectPtr<AActor> ActorToFind = UGameplayStatics::GetActorOfClass(this, ACPPMagma::StaticClass());
     TObjectPtr<ACPPMagma> Magma = Cast<ACPPMagma>(ActorToFind);
     if (!Magma) return;
 
-    Magma->Speed = Magma->BaseSpeed + Progress;
+    Magma->Speed = Magma->Speed + increment;
     if (Magma->Speed <= MagmaMaxSpeed) return;
     Magma->Speed = MagmaMaxSpeed;
+}
+
+// staticなやつら --------------------------------------------------------------------------------------------------------------------------------------------
+
+void ACPPGameModeBase::IncreaseProgress(ACharacter* Player)
+{
+    if (!Player) return;
+ 
+    ACPPPlayer* ExclusivePlayer = Cast<ACPPPlayer>(Player);
+    if (!ExclusivePlayer) return;
+
+    ACPPPlayerState* State = Cast<ACPPPlayerState>(ExclusivePlayer->GetPlayerState());
+    if (!State) return;
+    State->SetProgress(State->GetProgress() + 1);
+ 
+    // スコア表示
+    ShowScore(ExclusivePlayer);
+}
+
+EJumpingEvaluation ACPPGameModeBase::EvaluateJumping(float FallingTime)
+{
+    if (FallingTime < 0.3f) return EJumpingEvaluation::EVAL_Perfect;
+    if (FallingTime < 0.5f) return EJumpingEvaluation::EVAL_Good;
+    return EJumpingEvaluation::EVAL_Bad;
+}
+
+void ACPPGameModeBase::IncreaseJumpScore(ACharacter* Player, float Score)
+{
+    if (!Player) return;
+
+    ACPPPlayer* ExclusivePlayer = Cast<ACPPPlayer>(Player);
+    if (!ExclusivePlayer) return;
+
+    ACPPPlayerState* State = Cast<ACPPPlayerState>(ExclusivePlayer->GetPlayerState());
+    if (!State) return;
+    State->AddScore(Score);
+
+    // スコア表示
+    ShowScore(ExclusivePlayer);
+}
+
+void ACPPGameModeBase::ShowScore(ACPPPlayer* Player)
+{
+    if (!Player) return;
+
+    ACPPPlayerState* State = Cast<ACPPPlayerState>(Player->GetPlayerState());
+    if (!State) return;
+
+    // スコア表示
+    APlayerController* PlayerController = Cast<APlayerController>(Player->GetController());
+    if (!PlayerController) return;
+    ACPPGameHUD* GameHUD = Cast<ACPPGameHUD>(PlayerController->GetHUD());
+    if (GameHUD && GameHUD->GameScoreWidget) GameHUD->GameScoreWidget->SetScoreText(State->GetScore());
 }
 
 ACPPRandomStageSpawner* ACPPGameModeBase::SpawnNextStage(UWorld* World, TSubclassOf<ACPPRandomStageSpawner> StageClass, FVector Location, FVector FirstFloor)
