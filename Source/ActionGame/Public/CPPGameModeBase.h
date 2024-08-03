@@ -53,6 +53,9 @@ protected:
 	void HandleCharacterJump(ACPPPlayer* Player);
 
 	UFUNCTION()
+	void HandleCharacterLanding(ACPPPlayer* Player, float FallingTime);
+
+	UFUNCTION()
 	/* ゲームがステージ生成を行うための一通りの手続き */
 	void SpawnNext(AActor* OverlappedActor, AActor* OtherActor);
 

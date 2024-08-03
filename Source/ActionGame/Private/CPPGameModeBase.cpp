@@ -17,19 +17,16 @@
 
 ACPPGameModeBase::ACPPGameModeBase()
 {
-    UE_LOG(LogTemp, Log, TEXT("MyLog: GameModeConstructorBegin"));
     static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Developers/tkr31/Characters/BP_Player"));
     if (PlayerPawnBPClass.Class != NULL)
     {
         DefaultPawnClass = PlayerPawnBPClass.Class;
     }
-    UE_LOG(LogTemp, Log, TEXT("MyLog: GameModeConstructorEnd"));
 
 }
 
 void ACPPGameModeBase::BeginPlay()
 {
-    UE_LOG(LogTemp, Log, TEXT("MyLog: GameModeBeginPlayBegin"));
 
     // 他のUIから遷移してきた場合はマウス操作をゲームに戻す必要があるのでここで設定
     TObjectPtr<APlayerController> Controller = UGameplayStatics::GetPlayerController(this, 0);
@@ -60,6 +57,7 @@ void ACPPGameModeBase::BeginPlay()
     {
         Player->OnCharge.AddDynamic(this, &ACPPGameModeBase::HandleCharacterCharging);
         Player->OnJump.AddDynamic(this, &ACPPGameModeBase::HandleCharacterJump);
+        Player->OnGetFallingTime.AddDynamic(this, &ACPPGameModeBase::HandleCharacterLanding);
     }
 
     // マグマに当たったらゲームオーバー +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -76,8 +74,6 @@ void ACPPGameModeBase::BeginPlay()
     TObjectPtr<ACPPGameObserver> Observer = Cast<ACPPGameObserver>(ActorToFind);
     if (Observer)
         Observer->OnMagmaHitCharacter.AddDynamic(this, &ACPPGameModeBase::HandleOverlapMagmaTEMP);
-
-    UE_LOG(LogTemp, Log, TEXT("MyLog: GameModeBeginPlayEnd"));
 
 }
 
@@ -136,6 +132,13 @@ void ACPPGameModeBase::HandleCharacterJump(ACPPPlayer* Player)
     if (PlayerController) GameHUD = Cast<ACPPGameHUD>(PlayerController->GetHUD());
     if (GameHUD) GameHUD->RemoveCharacterState();
     bChargingProgressShown = false;
+}
+
+void ACPPGameModeBase::HandleCharacterLanding(ACPPPlayer* Player, float FallingTime)
+{
+    if (Player->LocationJumpingStarted.Z >= Player->GetActorLocation().Z + 10.0) return;
+
+    GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Cyan, FString::Printf(TEXT("time: %f"), FallingTime));
 }
 
 void ACPPGameModeBase::SpawnNext(AActor* OverlappedActor, AActor* OtherActor)
