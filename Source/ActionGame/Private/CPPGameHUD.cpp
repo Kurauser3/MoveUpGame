@@ -1,5 +1,7 @@
 #include "CPPGameHUD.h"
 
+#include "CPPEvaluationWidget.h"
+
 #include <Blueprint/WidgetBlueprintLibrary.h>
 
 void ACPPGameHUD::BeginPlay()
@@ -23,7 +25,7 @@ void ACPPGameHUD::ShowGameOver()
 void ACPPGameHUD::ShowGameScore()
 {
     if (!PlayerOwner) return;
-    if (!GameOverWidgetClass) return;
+    if (!GameScoreWidgetClass) return;
 
     TObjectPtr<UUserWidget> Widget = UWidgetBlueprintLibrary::Create(this, GameScoreWidgetClass, PlayerOwner);
     GameScoreWidget = Cast<UCPPGameStateWidget>(Widget);
@@ -40,8 +42,6 @@ void ACPPGameHUD::ShowCharacterState()
     Widget->AddToViewport();
 }
 
-
-
 void ACPPGameHUD::RemoveCharacterState()
 {
     if (!PlayerStateWidget) return;
@@ -52,8 +52,26 @@ void ACPPGameHUD::RemoveCharacterState()
 void ACPPGameHUD::ShowGameHelp()
 {
     if (!PlayerOwner) return;
-    if (!GameOverWidgetClass) return;
+    if (!GameHelpWidgetClass) return;
 
     TObjectPtr<UUserWidget> Widget = UWidgetBlueprintLibrary::Create(this, GameHelpWidgetClass, PlayerOwner);
     Widget->AddToViewport();
+}
+
+void ACPPGameHUD::ShowEvaluation()
+{
+    if (!PlayerOwner) return;
+    if (!EvaluationWidgetClass) return;
+
+    TObjectPtr<UUserWidget> Widget = UWidgetBlueprintLibrary::Create(this, EvaluationWidgetClass, PlayerOwner);
+    Widget->AddToViewport();
+
+    EvaluationWidget = Cast<UCPPEvaluationWidget>(Widget);
+}
+
+void ACPPGameHUD::SetEvaluation(EJumpingEvaluation Evaluation)
+{
+    if (!EvaluationWidget) ShowEvaluation();
+    if (!EvaluationWidget) return;
+    EvaluationWidget->SetEvaluation(Evaluation);
 }

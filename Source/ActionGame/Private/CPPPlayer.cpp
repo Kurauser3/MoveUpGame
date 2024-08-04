@@ -43,9 +43,16 @@ ACPPPlayer::ACPPPlayer()
 
 }
 
+void ACPPPlayer::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PrevCustomMode)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PrevCustomMode);
+
+	// 着地でタイマの値を取り、落ち始めからの経過時間をイベント関数に投げる
+	GetTimeOnFallingFinished(PrevMovementMode, PrevCustomMode);
+}
+
 void ACPPPlayer::BeginPlay()
 {
-	UE_LOG(LogTemp, Log, TEXT("MyLog: PlayerBeginPlayBegin"));
 
 	Super::BeginPlay();
 
@@ -57,9 +64,17 @@ void ACPPPlayer::BeginPlay()
 		}
 	}
 	CameraBoom->bUsePawnControlRotation = true;	// カメラを動かすのに必要な設定(コントローラーの向きに追従する)
-	UE_LOG(LogTemp, Log, TEXT("MyLog: PlayerBeginPlayEnd"));
 
 }
+
+
+void ACPPPlayer::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	CheckFallingAfterJump();
+}
+
 
 void ACPPPlayer::KillOwn()
 {
@@ -74,6 +89,47 @@ void ACPPPlayer::KillOwn()
 
 }
 
+void ACPPPlayer::CheckFallingAfterJump()
+{
+	if (!bJumpStarted) return;
+	if (GetCharacterMovement()->Velocity.Z >= 0) return;
+	if (bIsFallingAfterJump) return;
+	bIsFallingAfterJump = true;
+	OnStartFallingAfterJump();
+}
+
+void ACPPPlayer::OnStartFallingAfterJump()
+{
+	GetTimeOnFallingStarted();
+}
+
+void ACPPPlayer::GetTimeOnFallingStarted()
+{
+
+	GetWorldTimerManager().SetTimer(Timer, 60.f, true);
+	FallingStarted = GetWorldTimerManager().GetTimerElapsed(Timer);
+
+}
+
+void ACPPPlayer::GetTimeOnFallingFinished(EMovementMode PrevMovementMode, uint8 PrevCustomMode)
+{
+	if (PrevMovementMode != EMovementMode::MOVE_Falling) return;
+	if (!bJumpStarted) return;
+	bJumpStarted = false;
+
+	if (!bIsFallingAfterJump) {
+		OnGetFallingTime.Broadcast(this, 0.f);
+		return;
+	}
+	bIsFallingAfterJump = false;
+		;
+	FallingFinished = GetWorldTimerManager().GetTimerElapsed(Timer);
+	GetWorldTimerManager().ClearTimer(Timer);
+
+	if (FallingFinished - FallingStarted < 0.f) return;
+	OnGetFallingTime.Broadcast(this, FallingFinished - FallingStarted);
+
+}
 
 // プレイヤーの操作 -----------------------------------------------------------------------------------------------------------------------------
 
@@ -138,8 +194,10 @@ void ACPPPlayer::TestJump()
 	// ジャンプの処理
 	if (!bJumpChargeStarted) return;
 	bJumpChargeStarted = false;
+	LocationJumpingStarted = GetActorLocation();
 	GetCharacterMovement()->JumpZVelocity = JumpVelocity;
 	Jump();
+	bJumpStarted = true;
 	OnJump.Broadcast(this);
 	JumpVelocity = MinJumpVelocity;
 	
@@ -161,9 +219,4 @@ void ACPPPlayer::JumpChargeStarted()
 	bJumpChargeStarted = true;
 	GetCharacterMovement()->MaxWalkSpeed = 0.f;
 	if (!CanJump()) bJumpChargeStarted = false;
-}
-
-void ACPPPlayer::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }

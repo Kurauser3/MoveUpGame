@@ -8,7 +8,8 @@
 #include "CPPPlayer.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnJump, ACPPPlayer*, Player);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnCharacterChargingJumpPower, ACPPPlayer*, Player, float, JumpVelocity, float, Min, float, Max);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGetCharacterFallingTime, ACPPPlayer*, Player, float, FallingTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnCharacterCharging, ACPPPlayer*, Player, float, JumpVelocity, float, Min, float, Max);
 
 UCLASS()
 class ACTIONGAME_API ACPPPlayer : public ACharacter
@@ -25,14 +26,22 @@ public:
 	// Sets default values for this character's properties
 	ACPPPlayer();
 
-	UPROPERTY(VisibleAnywhere)
+	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PrevCustomMode) override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bJumpChargeStarted = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bJumpStarted = false;
 	
 	UPROPERTY(BlueprintAuthorityOnly)
 	FOnJump OnJump;
 
 	UPROPERTY(BlueprintAuthorityOnly)
-	FOnCharacterChargingJumpPower OnCharge;
+	FOnCharacterCharging OnCharge;
+
+	UPROPERTY(BlueprintAuthorityOnly)
+	FOnGetCharacterFallingTime OnGetFallingTime;
 
 	// カメラ ------------------------------------------------------------
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera")
@@ -66,6 +75,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Limitation")
 	float MaxJumpVelocity = 550.f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bIsFallingAfterJump = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector LocationJumpingStarted = FVector::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float FallingStarted = 0.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float FallingFinished = 0.f;
+
 	UFUNCTION()
 	/* プレイヤーが死ぬときの処理 */
 	void KillOwn();
@@ -96,6 +117,21 @@ protected:
 
 	UFUNCTION()
 	void JumpChargeStarted();
+
+	UFUNCTION()
+	void CheckFallingAfterJump();
+
+	UFUNCTION()
+	void OnStartFallingAfterJump();
+
+	UPROPERTY(BlueprintReadOnly)
+	FTimerHandle Timer;
+
+	UFUNCTION()
+	void GetTimeOnFallingStarted();
+
+	UFUNCTION()
+	void GetTimeOnFallingFinished(EMovementMode PrevMovementMode, uint8 PrevCustomMode);
 
 public:	
 	// Called every frame

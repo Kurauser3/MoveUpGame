@@ -2,6 +2,7 @@
 
 #include "CPPGameStateWidget.h"
 #include "CPPPlayerStateWidget.h"
+#include "CPPEJumpEvaluation.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
@@ -26,6 +27,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
 	TSubclassOf< UUserWidget > GameHelpWidgetClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widget")
+	TSubclassOf< UUserWidget > EvaluationWidgetClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UCPPEvaluationWidget* EvaluationWidget;
+
 	UPROPERTY(VisibleAnywhere)
     TObjectPtr< UCPPGameStateWidget > GameScoreWidget;
 
@@ -46,6 +53,12 @@ public:
 
 	UFUNCTION()
 	void ShowGameHelp();
+
+	UFUNCTION()
+	void ShowEvaluation();
+
+	UFUNCTION()
+	void SetEvaluation(EJumpingEvaluation Evaluation);
 
 protected:
 
