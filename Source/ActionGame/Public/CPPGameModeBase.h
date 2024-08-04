@@ -78,6 +78,9 @@ protected:
 	static void IncreaseJumpScore(ACharacter* Player, float Score);
 
 	UFUNCTION()
+	static void ShowEvaluation(ACPPPlayer* Player, EJumpingEvaluation Evaluation);
+
+	UFUNCTION()
 	static void ShowScore(ACPPPlayer* Player);
 
 	UFUNCTION()

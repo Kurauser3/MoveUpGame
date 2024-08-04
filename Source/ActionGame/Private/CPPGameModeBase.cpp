@@ -139,9 +139,14 @@ void ACPPGameModeBase::HandleCharacterLanding(ACPPPlayer* Player, float FallingT
 {
     if (Player->LocationJumpingStarted.Z + 3.0 >= Player->GetActorLocation().Z) return;
 
-    GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Cyan, FString::Printf(TEXT("time: %f"), FallingTime));
-
     EJumpingEvaluation Eval = EvaluateJumping(FallingTime);
+
+    // 評価を画面に出力
+    APlayerController* PlayerController = Cast<APlayerController>(Player->GetController());
+    ACPPGameHUD* GameHUD = nullptr;
+    if (PlayerController) GameHUD = Cast<ACPPGameHUD>(PlayerController->GetHUD());
+    if (GameHUD)GameHUD->SetEvaluation(Eval);
+
     IncreaseJumpScore(Player, JumpScoreMap[Eval]);
 }
 
@@ -229,6 +234,11 @@ void ACPPGameModeBase::IncreaseJumpScore(ACharacter* Player, float Score)
 
     // スコア表示
     ShowScore(ExclusivePlayer);
+}
+
+void ACPPGameModeBase::ShowEvaluation(ACPPPlayer* Player, EJumpingEvaluation Evaluation)
+{
+
 }
 
 void ACPPGameModeBase::ShowScore(ACPPPlayer* Player)
