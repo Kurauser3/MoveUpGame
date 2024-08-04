@@ -114,12 +114,17 @@ void ACPPPlayer::GetTimeOnFallingStarted()
 void ACPPPlayer::GetTimeOnFallingFinished(EMovementMode PrevMovementMode, uint8 PrevCustomMode)
 {
 	if (PrevMovementMode != EMovementMode::MOVE_Falling) return;
+	if (!bJumpStarted) return;
 	bJumpStarted = false;
 
-	if (!bIsFallingAfterJump) return;
+	if (!bIsFallingAfterJump) {
+		OnGetFallingTime.Broadcast(this, 0.f);
+		return;
+	}
+	bIsFallingAfterJump = false;
+		;
 	FallingFinished = GetWorldTimerManager().GetTimerElapsed(Timer);
 	GetWorldTimerManager().ClearTimer(Timer);
-	bIsFallingAfterJump = false;
 
 	if (FallingFinished - FallingStarted < 0.f) return;
 	OnGetFallingTime.Broadcast(this, FallingFinished - FallingStarted);
