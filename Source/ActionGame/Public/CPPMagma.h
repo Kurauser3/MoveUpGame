@@ -19,7 +19,7 @@ public:
 	ACPPMagma();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	double BaseSpeed = 40.f;
+	double BaseSpeed = 45.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	double Speed = 0.f;

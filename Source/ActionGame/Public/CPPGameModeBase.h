@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "CPPEJumpEvaluation.h"
+
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "CPPGameModeBase.generated.h"
@@ -19,11 +21,14 @@ class ACTIONGAME_API ACPPGameModeBase : public AGameModeBase
 	class ACPPRandomStageSpawner* PrevStage;
 
 	UPROPERTY(VisibleAnywhere)
-	/* ステージの進捗。ステージが生成される毎に一つ上がる */
-	uint32 Progress = 0;
+	bool bChargingProgressShown = false;
 
 	UPROPERTY(VisibleAnywhere)
-	bool bChargingProgressShown = false;
+	TMap <TEnumAsByte<EJumpingEvaluation>, float> JumpScoreMap = {
+		{EJumpingEvaluation::EVAL_Perfect, 250.f},
+		{EJumpingEvaluation::EVAL_Good, 150.f},
+		{EJumpingEvaluation::EVAL_Bad, 50.f}
+	};
 
 public:
 	ACPPGameModeBase();
@@ -32,7 +37,7 @@ public:
 	TSubclassOf<ACPPRandomStageSpawner> Stage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MagmaMaxSpeed = 70.f;
+	float MagmaMaxSpeed = 80.f;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -53,12 +58,30 @@ protected:
 	void HandleCharacterJump(ACPPPlayer* Player);
 
 	UFUNCTION()
+	void HandleCharacterLanding(ACPPPlayer* Player, float FallingTime);
+
+	UFUNCTION()
 	/* ゲームがステージ生成を行うための一通りの手続き */
 	void SpawnNext(AActor* OverlappedActor, AActor* OtherActor);
 
 	UFUNCTION()
 	/* マグマの上昇スピードを上げる */
-	void IncreaseMagmaSpeed();
+	void IncreaseMagmaSpeed(uint16 increment);
+
+	UFUNCTION()
+	static void IncreaseProgress(ACharacter* Player);
+
+	UFUNCTION()
+	static EJumpingEvaluation EvaluateJumping(float FallingTime);
+
+	UFUNCTION()
+	static void IncreaseJumpScore(ACharacter* Player, float Score);
+
+	UFUNCTION()
+	static void ShowEvaluation(ACPPPlayer* Player, EJumpingEvaluation Evaluation);
+
+	UFUNCTION()
+	static void ShowScore(ACPPPlayer* Player);
 
 	UFUNCTION()
 	/* 次のステージを生成 */
